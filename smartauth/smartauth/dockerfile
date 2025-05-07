@@ -1,0 +1,29 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install system dependencies for MySQL, necessary for PyMySQL
+RUN apt-get update && \
+    apt-get install -y pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip to the latest version
+RUN pip install --upgrade pip
+
+# Install the dependencies from requirements.txt
+COPY requirements.txt /app/
+RUN pip install -r requirements.txt
+
+# Collect static files (ensure STATIC_ROOT is set in settings.py)
+RUN python manage.py collectstatic --noinput
+
+# Expose port 8000 (or the port your app runs on)
+EXPOSE 8000
+
+# Run the server
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
